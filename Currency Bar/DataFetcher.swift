@@ -9,22 +9,28 @@
 import Foundation
 
 class DataFetcher {
-    var selectedCurrencyPair = "gbphuf"
-    let detailsUrl: String
-    let dataUrl: String
-    let request: URLRequest
-    var timer: DispatchSourceTimer?
-    var lastUpdatedTime: Date?
-    
-    var onUpdate: (String) -> ()
+    private let request: URLRequest
+    private var timer: DispatchSourceTimer?
+    private let dataUrl: String
     
     static var shared = DataFetcher()
+    
+    var selectedCurrencyPair = "gbphuf"
+    let detailsUrl: String
+    var lastUpdatedTime: Date?
+    var onUpdate: (String) -> ()
     
     init() {
         dataUrl = "https://query.yahooapis.com/v1/public/yql?q=select%20*%20from%20csv%20where%20url%3D%22http%3A%2F%2Ffinance.yahoo.com%2Fd%2Fquotes.csv%3Fe%3D.csv%26f%3Dnl1d1t1%26s%3D\(selectedCurrencyPair)%3DX%22%3B&format=json&callback="
         detailsUrl = String(format: "https://uk.finance.yahoo.com/quote/%@=X?p=%@=X", selectedCurrencyPair, selectedCurrencyPair)
         request = URLRequest(url: URL(string: dataUrl)!)
         self.onUpdate = { (_) -> () in }
+        
+        let queue = DispatchQueue(label: "xyz.istvan.timer")  // you can also use `DispatchQueue.main`, if you want
+        timer = DispatchSource.makeTimerSource(queue: queue)
+        timer!.scheduleRepeating(deadline: .now(), interval: .seconds(60))
+        timer!.setEventHandler(handler: self.performUpdate)
+        timer!.resume()
     }
     
     func performUpdate() {
@@ -49,18 +55,8 @@ class DataFetcher {
             }.resume()
     }
     
-    func start() {
-        let queue = DispatchQueue(label: "xyz.istvan.timer")  // you can also use `DispatchQueue.main`, if you want
-        timer = DispatchSource.makeTimerSource(queue: queue)
-        timer!.scheduleRepeating(deadline: .now(), interval: .seconds(60))
-        timer!.setEventHandler(handler: self.performUpdate)
-        timer!.resume()
-    }
-    
-    func stop() {
+    deinit {
         timer?.cancel()
         timer = nil
     }
-    
-    
 }

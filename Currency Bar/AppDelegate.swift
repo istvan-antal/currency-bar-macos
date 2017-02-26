@@ -12,7 +12,6 @@ import Cocoa
 class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
 
     let statusItem = NSStatusBar.system().statusItem(withLength: -2)
-    
     let menu = NSMenu()
     let lastUpdateIndicator = NSMenuItem()
     
@@ -50,24 +49,14 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
     @IBAction func exitNow(sender: AnyObject) {
         NSApplication.shared().terminate(self)
     }
-    
-    
 
     func applicationDidFinishLaunching(_ aNotification: Notification) {
-        // Insert code here to initialize your application
         NSApplication.shared().setActivationPolicy(NSApplicationActivationPolicy.accessory)
         
         DataFetcher.shared.onUpdate = { (rate) -> () in
             self.statusItem.title = rate
         }
-        DataFetcher.shared.start()
     }
-
-    func applicationWillTerminate(_ aNotification: Notification) {
-        // Insert code here to tear down your application
-        DataFetcher.shared.stop()
-    }
-
 
 }
 
