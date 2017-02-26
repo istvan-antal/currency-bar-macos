@@ -19,6 +19,10 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         NSApplication.shared().setActivationPolicy(NSApplicationActivationPolicy.accessory)
         statusItem.title = "..."
         let menu = NSMenu()
+        let lastUpdateIndicator = NSMenuItem()
+        lastUpdateIndicator.title = "Updated: never"
+        menu.addItem(lastUpdateIndicator)
+        menu.addItem(NSMenuItem.separator())
         menu.addItem(NSMenuItem(title: "Open Chart", action: #selector(openRatesPage(sender:)), keyEquivalent: "P"))
         menu.addItem(NSMenuItem.separator())
         menu.addItem(NSMenuItem(title: "Quit", action: #selector(exitNow(sender:)), keyEquivalent: "q"))
@@ -42,7 +46,8 @@ class AppDelegate: NSObject, NSApplicationDelegate {
                     let results = result["query"]?["results"] as! [String: [String: Any]]
                     let rate = String(describing: results["row"]!["col1"]!)
                     self?.statusItem.title = rate
-                    print("Entered the completionHandler")
+                    lastUpdateIndicator.title = "Updated: " + Date().description
+                    print("Update complete")
                 } catch {
                     print("error trying to convert data to JSON")
                     return
