@@ -9,17 +9,20 @@
 import Cocoa
 
 @NSApplicationMain
-class AppDelegate: NSObject, NSApplicationDelegate {
+class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
 
     let statusItem = NSStatusBar.system().statusItem(withLength: -2)
     var timer: DispatchSourceTimer?
-
-    func applicationDidFinishLaunching(_ aNotification: Notification) {
-        // Insert code here to initialize your application
-        NSApplication.shared().setActivationPolicy(NSApplicationActivationPolicy.accessory)
+    var lastUpdatedTime: Date?
+    let menu = NSMenu()
+    let lastUpdateIndicator = NSMenuItem()
+    
+    override init() {
+        super.init()
+        menu.delegate = self
+        
         statusItem.title = "..."
-        let menu = NSMenu()
-        let lastUpdateIndicator = NSMenuItem()
+        
         lastUpdateIndicator.title = "Updated: never"
         menu.addItem(lastUpdateIndicator)
         menu.addItem(NSMenuItem.separator())
@@ -27,7 +30,16 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         menu.addItem(NSMenuItem.separator())
         menu.addItem(NSMenuItem(title: "Quit", action: #selector(exitNow(sender:)), keyEquivalent: "q"))
         
-        statusItem.menu = menu
+        statusItem.menu = self.menu
+    }
+    
+    public func menuWillOpen(_ menu: NSMenu) {
+        lastUpdateIndicator.title = String(describing: Int(floor(-(lastUpdatedTime?.timeIntervalSinceNow)!))) + " seconds ago"
+    }
+
+    func applicationDidFinishLaunching(_ aNotification: Notification) {
+        // Insert code here to initialize your application
+        NSApplication.shared().setActivationPolicy(NSApplicationActivationPolicy.accessory)
         
         let queue = DispatchQueue(label: "xyz.istvan.timer")  // you can also use `DispatchQueue.main`, if you want
         timer = DispatchSource.makeTimerSource(queue: queue)
@@ -46,7 +58,8 @@ class AppDelegate: NSObject, NSApplicationDelegate {
                     let results = result["query"]?["results"] as! [String: [String: Any]]
                     let rate = String(describing: results["row"]!["col1"]!)
                     self?.statusItem.title = rate
-                    lastUpdateIndicator.title = "Updated: " + Date().description
+                    self?.lastUpdatedTime = Date()
+                    self?.lastUpdateIndicator.title = "Updated: " + (self?.lastUpdatedTime?.description)!
                     print("Update complete")
                 } catch {
                     print("error trying to convert data to JSON")
