@@ -8,12 +8,31 @@
 
 import Cocoa
 
-class ViewController: NSViewController {
-
+class ViewController: NSViewController, NSWindowDelegate, NSTextFieldDelegate {
+    
+    @IBOutlet weak var currencyPairField: NSTextField!
+    
+    
+    
     override func viewDidLoad() {
         super.viewDidLoad()
-
+        
         // Do any additional setup after loading the view.
+    }
+    
+    override func viewDidAppear() {
+        self.view.window?.delegate = self
+        currencyPairField.delegate = self
+        currencyPairField.stringValue = DataFetcher.shared.selectedCurrencyPair
+    }
+    
+    override func controlTextDidChange(_ obj: Notification) {
+        DataFetcher.shared.selectedCurrencyPair = currencyPairField.stringValue
+    }
+    
+    func windowShouldClose(_ sender: Any) -> Bool {
+        self.view.window?.setIsVisible(false)
+        return false
     }
 
     override var representedObject: Any? {
@@ -21,7 +40,7 @@ class ViewController: NSViewController {
         // Update the view, if already loaded.
         }
     }
-
+    
 
 }
 
